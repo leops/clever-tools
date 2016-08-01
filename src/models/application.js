@@ -56,6 +56,31 @@ Application.listAvailableFlavors = function() {
   ];
 };
 
+Application.configKeys = {
+  "cancel-on-push": {
+    jsonName: "cancelOnPush",
+    type: "boolean"
+  },
+  "description": "description",
+  "name": "name",
+  "separate-build": {
+    jsonName: "separateBuild",
+    type: "boolean"
+  },
+  "sticky-sessions": {
+    jsonName: "stickySessions",
+    type: "boolean"
+  },
+  "zone": {
+    jsonName: "zone",
+    type: "zone"
+  }
+};
+
+Application.listConfigKeys = function() {
+  return autocomplete.words(Object.keys(Application.configKeys));
+}
+
 Application.getId = function(api, orgaId, appIdOrName) {
   if(appIdOrName.app_id) {
     return Bacon.once(appIdOrName.app_id);
@@ -278,4 +303,27 @@ Application.unlink = function(api, appId, orgaId, appIdOrName) {
     var params = orgaId ? [orgaId, appId, linkedAppId] : [appId, linkedAppId];
     return api.owner(orgaId).applications._.dependencies._.delete().withParams(params).send();
   });
+};
+
+Application.setConfigItem = function(api, appId, orgaId, key, value) {
+  var params = orgaId ? [orgaId, appId] : [appId];
+  var s_currentConfig = api.owner(orgaId).applications._.get().withParams(params).send();
+
+  return s_currentConfig.flatMapLatest(function(currentConfig) {
+    var newConfig = {
+      cancelOnPush: currentConfig.cancelOnPush,
+      description: currentConfig.description,
+      homogeneous: false,
+      id: appId,
+      name: currentConfig.name,
+      separateBuild: currentConfig.separateBuild,
+      stickySessions: currentConfig.stickySessions,
+      zone: currentConfig.zone
+    };
+
+    newConfig[key]  = value;
+
+    return api.owner(orgaId).applications._.put().withParams(params).send(JSON.stringify(newConfig));
+  });
+
 };

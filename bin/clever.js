@@ -78,6 +78,7 @@ var applications = lazyRequiref("../src/commands/applications.js");
 var scale = lazyRequiref("../src/commands/scale.js");
 var open = lazyRequiref("../src/commands/open.js");
 var makeDefault = lazyRequiref("../src/commands/makeDefault.js");
+var config = lazyRequire("../src/commands/config.js");
 
 var Application = lr("../src/models/application.js");
 var Parsers = require("../src/parsers.js");
@@ -94,6 +95,8 @@ function run() {
   var addonIdOrNameArgument = cliparse.argument("addon-id", { description: "Addon ID (or name, if unambiguous)", parser: Parsers.addonIdOrName });
   var addonNameArgument = cliparse.argument("addon-name", { description: "Addon name" });
   var addonProviderArgument = cliparse.argument("addon-provider", { description: "Addon provider" });
+  var configKeyArgument = cliparse.argument("parameter-name", { description: "Configuration parameter name", complete: Application("listConfigKeys") });
+  var configValueArgument = cliparse.argument("parameter-value", { description: "Configuration parameter value" });
 
   // OPTIONS
   var orgaIdOrNameOption = cliparse.option("org", { aliases: ["o"], description: "Organisation ID (or name, if unambiguous)", parser: Parsers.orgaIdOrName });
@@ -536,6 +539,19 @@ function run() {
     options: [ aliasOption ]
   }, open);
 
+  //CONFIG COMMAND
+  var configSetCommand = cliparse.command("set", {
+    description: "Edit configuration of your application",
+    args: [configKeyArgument, configValueArgument]
+  }, config("set"));
+
+  var configCommand = cliparse.command("config", {
+    description: "Edit application configuration",
+    commands: [
+      configSetCommand
+    ]
+  });
+
 
   // CLI PARSER
   var cliParser = cliparse.cli({
@@ -563,7 +579,8 @@ function run() {
       serviceCommands,
       applicationsCommand,
       scaleCommand,
-      openCommand
+      openCommand,
+      configCommand
     ]
   });
 
