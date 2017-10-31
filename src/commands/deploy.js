@@ -11,7 +11,7 @@ const Log = require('../models/log.js');
 const Logger = require('../logger.js');
 
 async function deployPromise (api, params) {
-  const { alias, branch: branchName, quiet, force } = params.options;
+  const { alias, branch: branchName, quiet, force, "push-only": pushOnly } = params.options;
 
   const appData = await AppConfig.getAppData(alias).toPromise();
   const branchRefspec = await git.getFullBranch(branchName);
@@ -51,7 +51,11 @@ function deploy (api, params) {
   const stream = Bacon
     .fromPromise(deployPromise(api, params))
     .flatMapLatest(({ push, appData, commitIdToPush, quiet }) => {
-      return Log.getAllLogs(api, push, appData, commitIdToPush, quiet);
+      if(pushOnly) {
+        return Bacon.never();
+      } else {
+        return Log.getAllLogs(api, push, appData, commitIdToPush, quiet);
+      }
     })
     .map(Logger.println);
 

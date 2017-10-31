@@ -210,6 +210,9 @@ function run () {
       aliases: ['f'],
       description: `Force deploy even if it's not fast-forwardable`,
     }),
+    pushOnly: cliparse.flag('push-only', {
+      description: 'Only perform a Git push without waiting for the deploy to end',
+    }),
     webhookFormat: cliparse.option('format', {
       metavar: 'format',
       default: 'raw',
@@ -431,7 +434,7 @@ function run () {
   const deploy = lazyRequireFunctionWithApi('../src/commands/deploy.js');
   const deployCommand = cliparse.command('deploy', {
     description: 'Deploy an application to Clever Cloud',
-    options: [opts.alias, opts.branch, opts.quiet, opts.forceDeploy],
+    options: [opts.alias, opts.branch, opts.quiet, opts.forceDeploy, opts.pushOnly],
   }, deploy);
 
   // DIAG COMMAND
